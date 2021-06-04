@@ -17,8 +17,8 @@ import org.testng.xml.XmlPackage;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
-import com.adobe.campaign.tests.case1.TestClassA;
-import com.adobe.campaign.tests.case1.TestClassB;
+import com.adobe.campaign.tests.case1_fails.TestClassA;
+import com.adobe.campaign.tests.case1_fails.TestClassB;
 
 public class TestEGMProblem {
     @Test
@@ -42,7 +42,7 @@ public class TestEGMProblem {
 
         //Define packages
         List<XmlPackage> l_packages = new ArrayList<XmlPackage>();
-        l_packages.add(new XmlPackage("com.adobe.campaign.tests.*"));
+        l_packages.add(new XmlPackage("com.adobe.campaign.tests.case1_fails.*"));
         myTest.setXmlPackages(l_packages);
 
         myTestNG.run();
@@ -53,17 +53,17 @@ public class TestEGMProblem {
 
         int allTestsNr = tla.getFailedTests().size() + tla.getPassedTests().size()
                 + tla.getSkippedTests().size();
-        assertThat("One test should have been executed", allTestsNr, is(equalTo(10)));
+        assertThat("One test should have been executed", allTestsNr, is(equalTo(2)));
 
-        assertThat("We should have 2 successful methods of phased Tests",
+        assertThat("We should have 1 successful methods of class A",
                 tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(TestClassA.class))
                         .collect(Collectors.toList()).size(),
-                is(equalTo(5)));
+                is(equalTo(1)));
 
-        assertThat("We should have 2 successful methods of phased Tests",
+        assertThat("We should have 1 successful methods of class B",
                 tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(TestClassB.class))
                         .collect(Collectors.toList()).size(),
-                is(equalTo(5)));
+                is(equalTo(1)));
 
     }
 
