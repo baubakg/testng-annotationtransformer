@@ -26,7 +26,7 @@ import com.adobe.campaign.tests.case2_fails.TestClassC2;
 
 public class TestEGMProblem {
     @Test
-    public void testPhasedSingle_classLevelExternalGroupManager() {
+    public void testClassLevel_multiGrpups() {
 
         // Rampup
         TestNG myTestNG = createTestNG();
@@ -74,7 +74,7 @@ public class TestEGMProblem {
     
     
     @Test
-    public void testTestClassLevel_NoDescription() {
+    public void testTestClassLevel_NoDescription_DifferentGroups() {
 
         // Rampup
         TestNG myTestNG = createTestNG();
