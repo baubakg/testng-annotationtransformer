@@ -20,6 +20,9 @@ import org.testng.xml.XmlTest;
 
 import com.adobe.campaign.tests.case1_fails.TestClassA;
 import com.adobe.campaign.tests.case1_fails.TestClassB;
+import com.adobe.campaign.tests.case2_fails.TestClassA2;
+import com.adobe.campaign.tests.case2_fails.TestClassB2;
+import com.adobe.campaign.tests.case2_fails.TestClassC2;
 
 public class TestEGMProblem {
     @Test
@@ -68,6 +71,60 @@ public class TestEGMProblem {
 
     }
 
+    
+    
+    @Test
+    public void testTestClassLevel_NoDescription() {
+
+        // Rampup
+        TestNG myTestNG = createTestNG();
+        TestListenerAdapter tla = fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = addSuitToTestNGTest(myTestNG, "Automated Suite EGM Problem Testing");
+
+        // Add listeners
+
+        mySuite.addListener(TestTransformer.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = attachTestToSuite(mySuite, "Test Simple Phased EGM Tests");
+
+        myTest.addIncludedGroup("A");
+
+        //Define packages
+        List<XmlPackage> l_packages = new ArrayList<XmlPackage>();
+        l_packages.add(new XmlPackage("com.adobe.campaign.tests.case2_fails.*"));
+        myTest.setXmlPackages(l_packages);
+
+        myTestNG.run();
+
+        final Set<String> tests = TestTransformer.tests;
+        assertThat("Our test Class TestClassC2 should have been accessed", tests.contains(TestClassC2.class.getTypeName()));
+        assertThat("Our test Class TestClassA2 should have been accessed", tests.contains(TestClassA2.class.getTypeName()));
+        assertThat("Our test Class TestClassB2 should have been accessed", tests.contains(TestClassB2.class.getTypeName()));
+
+        int allTestsNr = tla.getFailedTests().size() + tla.getPassedTests().size()
+                + tla.getSkippedTests().size();
+        assertThat("One test should have been executed", allTestsNr, is(equalTo(2)));
+
+        assertThat("We should have 1 successful methods of class C",
+                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(TestClassC2.class))
+                        .collect(Collectors.toList()).size(),
+                is(equalTo(1)));
+
+        
+        assertThat("We should have 1 successful methods of class A",
+                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(TestClassA2.class))
+                        .collect(Collectors.toList()).size(),
+                is(equalTo(1)));
+
+        assertThat("We should have 1 successful methods of class B",
+                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(TestClassB2.class))
+                        .collect(Collectors.toList()).size(),
+                is(equalTo(1)));
+
+    }
     //////////////////Helpers
 
     /**
