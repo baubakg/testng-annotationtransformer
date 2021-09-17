@@ -11,9 +11,11 @@ import java.util.stream.Collectors;
 
 import org.testng.ITestListener;
 import org.testng.ITestNGListener;
+import org.testng.ITestResult;
 import org.testng.TestListenerAdapter;
 import org.testng.TestNG;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 import org.testng.xml.XmlPackage;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
@@ -52,8 +54,10 @@ public class TestEGMProblem {
         myTestNG.run();
 
         final Set<String> tests = TestTransformer.tests;
-        assertThat("Our test Class TestClassA should have been accessed", tests.contains(TestClassA.class.getTypeName()));
-        assertThat("Our test Class TestClassB should have been accessed", tests.contains(TestClassB.class.getTypeName()));
+        assertThat("Our test Class TestClassA should have been accessed",
+                tests.contains(TestClassA.class.getTypeName()));
+        assertThat("Our test Class TestClassB should have been accessed",
+                tests.contains(TestClassB.class.getTypeName()));
 
         int allTestsNr = tla.getFailedTests().size() + tla.getPassedTests().size()
                 + tla.getSkippedTests().size();
@@ -71,8 +75,6 @@ public class TestEGMProblem {
 
     }
 
-    
-    
     @Test
     public void testTestClassLevel_NoDescription_DifferentGroups() {
 
@@ -100,31 +102,78 @@ public class TestEGMProblem {
         myTestNG.run();
 
         final Set<String> tests = TestTransformer.tests;
-        assertThat("Our test Class TestClassC2 should have been accessed", tests.contains(TestClassC2.class.getTypeName()));
-        assertThat("Our test Class TestClassA2 should have been accessed", tests.contains(TestClassA2.class.getTypeName()));
-        assertThat("Our test Class TestClassB2 should have been accessed", tests.contains(TestClassB2.class.getTypeName()));
+        assertThat("Our test Class TestClassC2 should have been accessed",
+                tests.contains(TestClassC2.class.getTypeName()));
+        assertThat("Our test Class TestClassA2 should have been accessed",
+                tests.contains(TestClassA2.class.getTypeName()));
+        assertThat("Our test Class TestClassB2 should have been accessed",
+                tests.contains(TestClassB2.class.getTypeName()));
 
         int allTestsNr = tla.getFailedTests().size() + tla.getPassedTests().size()
                 + tla.getSkippedTests().size();
         assertThat("One test should have been executed", allTestsNr, is(equalTo(2)));
 
         assertThat("We should have 1 successful methods of class C",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(TestClassC2.class))
+                tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(TestClassC2.class))
                         .collect(Collectors.toList()).size(),
                 is(equalTo(1)));
 
-        
         assertThat("We should have 1 successful methods of class A",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(TestClassA2.class))
+                tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(TestClassA2.class))
                         .collect(Collectors.toList()).size(),
                 is(equalTo(1)));
 
         assertThat("We should have 1 successful methods of class B",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(TestClassB2.class))
+                tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(TestClassB2.class))
                         .collect(Collectors.toList()).size(),
                 is(equalTo(1)));
 
     }
+
+    @Test
+    public void testTestClassLevel_NoDescription_ChangeGroupOfOne() {
+
+        // Rampup
+        TestNG myTestNG = createTestNG();
+        TestListenerAdapter tla = fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = addSuitToTestNGTest(myTestNG, "Automated Suite EGM Problem groups Testing");
+
+        // Add listeners
+
+        mySuite.addListener(TestGroupTransformer.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = attachTestToSuite(mySuite, "Test Simple EGM Problem Tests");
+
+        myTest.addIncludedGroup("MYGROUP");
+
+        //Define packages
+        List<XmlPackage> l_packages = new ArrayList<XmlPackage>();
+        l_packages.add(new XmlPackage("com.adobe.campaign.tests.case1_fails.*"));
+        myTest.setXmlPackages(l_packages);
+
+        myTestNG.run();
+
+        SoftAssert softAssert = new SoftAssert();
+        softAssert.assertEquals(tla.getPassedTests().size(), 1,
+                "Since we only change the group of TestClassA we should only have one success");
+        softAssert.assertFalse(tla.getPassedTests().stream().anyMatch(
+                t -> t.getMethod().getRealClass().getTypeName().equals(TestClassB.class.getTypeName())), "TestClassB should not be included");
+        
+        final ITestResult l_testClassBTestResult = tla.getPassedTests().stream().filter(
+                t -> t.getMethod().getRealClass().getTypeName().equals(TestClassB.class.getTypeName())).findFirst().get();
+        softAssert.assertEquals(l_testClassBTestResult.getMethod().getGroups().length,4,"We should not have toughed the test groups of TestClassB");
+        
+
+        softAssert.assertAll();
+
+    }
+
     //////////////////Helpers
 
     /**
